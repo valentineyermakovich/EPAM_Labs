@@ -30,112 +30,123 @@ namespace TestProject1.Tests
             _loginPage.InputEmail();
             _loginPage.InputPassword();
             _loginPage.LogIn();
-            //_loginPage.WaitUntilTradingPageIsLoaded(5000);
             Thread.Sleep(2000);
             _tradingPage = new TradingPage(_driver);
             Thread.Sleep(2000);
             _tradingPage.PopUpSkip();
-            Thread.Sleep(2000);
-
         }
 
         [Test]
         public void BuyBTCMarketTest()
         {
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(100);
+           // _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(100);
             _tradingPage.SwitchToBuyBTC();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SwitchToBuyMarket();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SetAmountMarketBuy("0.00001");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            Thread.Sleep(1000);
+            decimal previousValue = _tradingPage.GetBTCBalance();
             _tradingPage.BuyMarketLimitScaled();
+            _tradingPage.WaitUntilTradingPageIsLoaded(0.2);
+            Thread.Sleep(1000);
+            decimal currentValue = _tradingPage.GetBTCBalance();
+            Assert.AreEqual(Math.Round(previousValue+ Math.Round(Convert.ToDecimal(0.00001), 5), 5), Math.Round(currentValue,5));
         }
 
         [Test]
         public void BuyBTCLimitTest()
         {
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(100);
             _tradingPage.SwitchToBuyBTC();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SwitchToBuyLimit();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SetAmountLimitBuy("0.00001");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            Thread.Sleep(500);
             _tradingPage.SetPriceForLimit("37850");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            int previousValue = _tradingPage.LimitOrdersCounter();
             _tradingPage.BuyMarketLimitScaled();
+            Thread.Sleep(500);
+            int currentValue = _tradingPage.LimitOrdersCounter();
+            Assert.AreEqual(previousValue+1,currentValue);
+
         }
 
         [Test]
         public void BuyBTCScaledTest()
         {
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(100);
             _tradingPage.SwitchToBuyBTC();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(100);
             _tradingPage.SwitchToBuyScaled();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SetAmountScaleBuy("0.00002");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            Thread.Sleep(1000);
             _tradingPage.SetPriceStepForScaleBuy("0.01");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
-            _tradingPage.SetMinPriceForScaleBuy("381009.94");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
-            _tradingPage.SetMaxPriceForScaleBuy("381009.95");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            _tradingPage.SetMinPriceForScaleBuy("38793.94");
+            _tradingPage.SetMaxPriceForScaleBuy("38793.95");
             _tradingPage.SetOrderCountBuy("2");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            _tradingPage.SetOrderCountBuy("2");
+            int previousValue = _tradingPage.LimitOrdersCounter();
             _tradingPage.BuyMarketLimitScaled();
+            Thread.Sleep(1000);
+            int currentValue = _tradingPage.LimitOrdersCounter();
+            if (previousValue != currentValue) 
+            {
+                Assert.AreEqual(previousValue + 2, currentValue);
+            }
+            else
+            {
+                Assert.AreEqual(previousValue, currentValue);
+            }
         }
 
         [Test]
         public void SellBTCMarketTest()
         {
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(100);
             _tradingPage.SwitchToSellBTC();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SwitchToSellMarket();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
-            Thread.Sleep(200);
-            _tradingPage.SetAmountMarketSell("0.00001");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            Thread.Sleep(1000);
+            _tradingPage.SetAmountMarketSell("0.00001000");
+            decimal previousValue = _tradingPage.GetBTCBalance();
             _tradingPage.SellMarketLimitScaled();
+            Thread.Sleep(1200);
+            decimal currentValue = _tradingPage.GetBTCBalance();
+           Assert.AreEqual(Math.Round(previousValue - Math.Round(Convert.ToDecimal(0.00001),5), 5), Math.Round(currentValue, 5));
         }
 
         [Test]
         public void SellBTCLimitTest()
         {
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(100);
             _tradingPage.SwitchToSellBTC();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SwitchToSellLimit();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SetAmountLimitSell("0.00001");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SetPriceForSaleLimit("37850");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            Thread.Sleep(1000);
+            decimal previousValue = _tradingPage.GetBTCBalance();
             _tradingPage.SellMarketLimitScaled();
+            Thread.Sleep(1000);
+            decimal currentValue = _tradingPage.GetBTCBalance();
+            Assert.AreEqual(Math.Round(previousValue - Math.Round(Convert.ToDecimal(0.00001), 5), 5), Math.Round(currentValue, 5));
         }
 
         [Test]
         public void SellBTCScaledTest()
         {
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(100);
             _tradingPage.SwitchToSellBTC();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SwitchToSellScaled();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SetAmountScaleSell("0.00002");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SetPriceStepForScaleSell("0.01");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SetMinPriceForScaleSale("38198.59");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SetMaxPriceForScaleSale("38198.60");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SetOrderCountSale("2");
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            Thread.Sleep(1000);
+            decimal previousValue = _tradingPage.GetBTCBalance();
             _tradingPage.SellMarketLimitScaled();
+            Thread.Sleep(1000);
+            decimal currentValue = _tradingPage.GetBTCBalance();
+            if (previousValue != currentValue)
+            {
+                Assert.AreEqual(Math.Round(previousValue - Math.Round(Convert.ToDecimal(0.00002), 5), 5), Math.Round(currentValue, 5));
+            }
+            else
+            {
+                Assert.AreEqual(previousValue, currentValue);
+            }
+
         }
 
         //[Test]
@@ -191,14 +202,19 @@ namespace TestProject1.Tests
         [Test]
         public void SellBTCMarketByPercentageTest()
         {
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(100);
+            _tradingPage.WaitUntilTradingPageIsLoaded(0.5);
             _tradingPage.SwitchToSellBTC();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             _tradingPage.SwitchToSellMarket();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            Thread.Sleep(1000);
+            decimal previousValue = _tradingPage.GetBTCBalance();
             _tradingPage.SelectSellPercentage();
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            Thread.Sleep(1000);
+            _tradingPage.WaitUntilTradingPageIsLoaded(0.2);
+            decimal amount = _tradingPage.PercentageAmount();
             _tradingPage.SellMarketLimitScaled();
+            Thread.Sleep(1000);
+            decimal currentValue = _tradingPage.GetBTCBalance();
+            Assert.AreEqual(previousValue - amount, currentValue);
         }
 
 

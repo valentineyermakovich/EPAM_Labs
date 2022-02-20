@@ -21,11 +21,11 @@ namespace Framework.Util
                 ss.SaveAsFile(Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.Parent.FullName +
                     "/Framework/SavedLogs/" + path + ".png", ScreenshotImageFormat.Png);
 
-                Log.Info("Screenshot is maken");
+                Log.Info("Screenshot is taken");
             }
             catch (Exception e)
             {
-                Log.Info(e, "Screenshot isn't maken");
+                Log.Info(e, "Screenshot isn't taken");
                 throw;
             }
         }

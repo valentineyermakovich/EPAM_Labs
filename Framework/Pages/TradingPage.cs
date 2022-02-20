@@ -5,6 +5,7 @@ using SeleniumExtras.PageObjects;
 using SeleniumExtras.WaitHelpers;
 using System.Threading;
 using Framework.Util;
+using System.Globalization;
 
 namespace Framework.Pages
 {
@@ -13,6 +14,10 @@ namespace Framework.Pages
 
         private readonly By _popUpSkipButton =
             By.CssSelector("body > div.wrap.wrap-static.wrap_terminal > div:nth-child(14) > div > div > div.styles__popupContent--3_6iJ > div.styles__risk--1U9Pj > a > span");
+        private readonly By _spotBalanceBTC =
+            By.CssSelector("body > div.wrap.wrap-static.wrap_terminal > div.header-container-chunk.react-chunk > div > div > div > div > div.styles__topPart--2NpVr > div.styles__tools--2XUJY > div:nth-child(1) > div.styles__balanceInfo--1AnT7 > div:nth-child(2) > span:nth-child(1)");
+        private readonly By _activeOrders =
+             By.CssSelector("body > div.wrap.wrap-static.wrap_terminal > div.terminal__edit-container.on_advanced > div:nth-child(2) > div > div.terminal.on_advanced > div.terminal__window.window.terminal__window_myOrders.window_6-col.ui-resizable > div.window__window > div.window__body > div > div > div.tabs__menu.tabs__menu_wide.ui-clearfix > div.tabs__menuItem.tabs__menuItem_active > span.window__ordersCounter.myOrder__count.myOrder__count_active > span");
         private readonly By _marketBuyButton =
             By.CssSelector("body > div.wrap.wrap-static.wrap_terminal > div.terminal__edit-container.on_advanced > div:nth-child(2) > div > div.terminal.on_advanced > div.terminal__window.window.terminal__window_buyOrder > div.window__window > div.window__body > div.terminalSwitchBlocks.window__terminalSwitchBlocks > form.form.form_createOrder.form_newErrors.form_createOrder_Buy.limit.window__form_createOrder.form_createOrder__withAmountSlider > div.form_createOrder__header.form_createOrder_withStops > ul > li.ui-fl.market > div");
         private readonly By _marketSellButton =
@@ -89,8 +94,43 @@ namespace Framework.Pages
          By.CssSelector("#__outside-render-1 > div > div > div > div > div > div:nth-child(1)");
         private readonly By _amountSlider25PercentsButton =
           By.CssSelector("body > div.wrap.wrap-static.wrap_terminal > div.terminal__edit-container.on_advanced > div:nth-child(2) > div > div.terminal.on_advanced > div.terminal__window.window.terminal__window_buyOrder > div.window__window > div.window__body > div.terminalSwitchBlocks.window__terminalSwitchBlocks > form.form.form_createOrder.form_newErrors.form_createOrder_Sell.window__form_createOrder.form_createOrder__withAmountSlider.market > div.form_createOrder__entries.ui-clearfix > div.form_createOrder__slider.form_createOrder__Sell.ui-slider.ui-slider-horizontal.ui-widget.ui-widget-content.ui-corner-all > div.sliderBg > div.sliderStepWrp.s25");
+        private readonly By _amountSlider50PercentsButton =
+          By.CssSelector("body > div.wrap.wrap-static.wrap_terminal > div.terminal__edit-container.on_advanced > div:nth-child(2) > div > div.terminal.on_advanced > div.terminal__window.window.terminal__window_buyOrder > div.window__window > div.window__body > div.terminalSwitchBlocks.window__terminalSwitchBlocks > form.form.form_createOrder.form_newErrors.form_createOrder_Sell.window__form_createOrder.form_createOrder__withAmountSlider.market > div.form_createOrder__entries.ui-clearfix > div.form_createOrder__slider.form_createOrder__Sell.ui-slider.ui-slider-horizontal.ui-widget.ui-widget-content.ui-corner-all > div.sliderBg > div.sliderStepWrp.s50");
 
         public TradingPage(IWebDriver driver) : base(driver) { }
+
+        public void WaitUntilTradingPageIsLoaded(double waitTime)
+        {
+            Wait = new WebDriverWait(driver, TimeSpan.FromSeconds(waitTime));
+            Wait.Until(
+                ExpectedConditions.PresenceOfAllElementsLocatedBy(By.CssSelector("body > div.wrap.wrap-static.wrap_terminal > div.header-container-chunk.react-chunk > div > div > div > div > div.styles__topPart--2NpVr > div.styles__tools--2XUJY > div:nth-child(1) > div.styles__balanceInfo--1AnT7 > div:nth-child(2) > span:nth-child(1)")));
+        }
+        public decimal GetBTCBalance()
+        {
+            WaitUntilTradingPageIsLoaded(1);
+            IWebElement spotBalanceBTC = driver.FindElement(_spotBalanceBTC);
+            string stringValue = spotBalanceBTC.GetAttribute("innerText").ToString();
+            IFormatProvider formatter = new NumberFormatInfo { NumberDecimalSeparator = "." };
+            return Math.Round(Convert.ToDecimal(stringValue, formatter),5);
+        }
+        public int LimitOrdersCounter()
+        {
+            IWebElement activeOrders = driver.FindElement(_activeOrders);
+            WaitUntilTradingPageIsLoaded(2);
+            string stringValue = activeOrders.GetAttribute("innerText").ToString().Trim(new Char[] { '(', ')' });
+            return Convert.ToInt32(stringValue);
+        }
+        public decimal PercentageAmount()
+        {
+            var amountSellMarketInputField = driver.FindElement(_amountSellMarketInputField);
+            string stringValue = amountSellMarketInputField.GetAttribute("value");
+            if (stringValue == "NaN")
+            {
+                return 0;
+            }
+            IFormatProvider formatter = new NumberFormatInfo { NumberDecimalSeparator = "." };
+            return Math.Round(Convert.ToDecimal(stringValue, formatter),5);
+        }
 
         public void TestClick()
         {
@@ -174,7 +214,7 @@ namespace Framework.Pages
         }
         public void OpenProperties()
         {
-            Thread.Sleep(2000);
+            //Thread.Sleep(2000);
             var chartPropertiesButton = driver.FindElement(_chartPropertiesButton);
             chartPropertiesButton.Click();
             Log.Info("Properties button has been pressed");
@@ -247,6 +287,8 @@ namespace Framework.Pages
         }
         public void SelectSellPercentage()
         {
+            var amountSlider50PercentsButton = driver.FindElement(_amountSlider50PercentsButton);
+            amountSlider50PercentsButton.Click();
             var amountSlider25PercentsButton = driver.FindElement(_amountSlider25PercentsButton);
             amountSlider25PercentsButton.Click();
             Log.Info("We choose 25% of BTC balance to sell");
@@ -271,7 +313,7 @@ namespace Framework.Pages
         public void SetAmountMarketBuy(string val)
         {
             var amountBuyMarketInputField = driver.FindElement(_amountBuyMarketInputField);
-            Thread.Sleep(200);
+            //Thread.Sleep(200);
             amountBuyMarketInputField.Click();
             amountBuyMarketInputField.SendKeys(val);
             Log.Info("Amount field has been filled");
@@ -280,7 +322,7 @@ namespace Framework.Pages
         public void SetAmountLimitBuy(string val)
         {
             var amountBuyLimitInputField = driver.FindElement(_amountBuyLimitInputField);
-            Thread.Sleep(200);
+            //Thread.Sleep(200);
             amountBuyLimitInputField.Click();
             amountBuyLimitInputField.SendKeys(val);
             Log.Info("Amount field has been filled");
@@ -289,7 +331,7 @@ namespace Framework.Pages
         public void SetAmountScaleBuy(string val)
         {
             var amountBuyScaleInputField = driver.FindElement(_amountBuyScaleInputField);
-            Thread.Sleep(200);
+            //Thread.Sleep(200);
             amountBuyScaleInputField.Click();
             amountBuyScaleInputField.SendKeys(val);
             Log.Info("Amount field has been filled");
@@ -298,7 +340,7 @@ namespace Framework.Pages
         public void SetAmountMarketSell(string val)
         {
             var amountSellMarketInputField = driver.FindElement(_amountSellMarketInputField);
-            Thread.Sleep(200);
+            //Thread.Sleep(200);
             amountSellMarketInputField.Click();
             amountSellMarketInputField.SendKeys(val);
             Log.Info("Amount field has been filled");
@@ -307,7 +349,7 @@ namespace Framework.Pages
         public void SetAmountLimitSell(string val)
         {
             var amountSellLimitInputField = driver.FindElement(_amountSellLimitInputField);
-            Thread.Sleep(200);
+            //Thread.Sleep(200);
             amountSellLimitInputField.Click();
             amountSellLimitInputField.SendKeys(val);
             Log.Info("Amount field has been filled");
@@ -316,7 +358,7 @@ namespace Framework.Pages
         public void SetAmountScaleSell(string val)
         {
             var amountSellScaleInputField = driver.FindElement(_amountSellScaleInputField);
-            Thread.Sleep(200);
+            //Thread.Sleep(200);
             amountSellScaleInputField.Click();
             amountSellScaleInputField.SendKeys(val);
             Log.Info("Amount field has been filled");
@@ -374,6 +416,7 @@ namespace Framework.Pages
         {
             var orderCountBuyField = driver.FindElement(_orderCountBuyField);
             orderCountBuyField.Click();
+            orderCountBuyField.Clear();
             orderCountBuyField.SendKeys(val);
             Log.Info("Order Count field has been filled");
 
@@ -399,6 +442,7 @@ namespace Framework.Pages
         {
             var orderCountSellField = driver.FindElement(_orderCountSellField);
             orderCountSellField.Click();
+            orderCountSellField.Clear();
             orderCountSellField.SendKeys(val);
             Log.Info("Order Count field has been filled");
 
